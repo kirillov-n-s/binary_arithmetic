@@ -1,1 +1,1 @@
-# haskell-test
+Bit and bitset arithmetic as a first program in Haskell

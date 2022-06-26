@@ -43,17 +43,21 @@ unbits xs = sum [(fromEnum . B.bool $ x) * 2 ^ i | (i, x) <- zip [0..] (reverse 
 bitsFixed :: Int -> Int -> Bitset
 bitsFixed n = pad n . bits
 
+table :: Int -> [Bitset]
+table 0 = []
+table n = [bitsFixed n x | x <- [0..2^n - 1]]
+
 __ :: Bitset -> Bitset
 __ = map B.__
 
-apply :: (B.Bit -> B.Bit -> B.Bit) -> Bitset -> Bitset -> Bitset
-apply f x y = strip (zipWith f (pax x) (pax y))
+bitwise :: (B.Bit -> B.Bit -> B.Bit) -> Bitset -> Bitset -> Bitset
+bitwise f x y = strip (zipWith f (pax x) (pax y))
   where pax = padMax [x, y]
 
-x /\ y  = apply (B./\)  x y
-x \/ y  = apply (B.\/)  x y
-x <+> y = apply (B.<+>) x y
-x ==> y = apply (B.==>) x y
-x <=> y = apply (B.<=>) x y
-x /|\ y = apply (B./|\) x y
-x \|/ y = apply (B.\|/) x y
+x /\ y  = bitwise (B./\)  x y
+x \/ y  = bitwise (B.\/)  x y
+x <+> y = bitwise (B.<+>) x y
+x ==> y = bitwise (B.==>) x y
+x <=> y = bitwise (B.<=>) x y
+x /|\ y = bitwise (B./|\) x y
+x \|/ y = bitwise (B.\|/) x y
