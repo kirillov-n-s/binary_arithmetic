@@ -10,19 +10,19 @@ main =
 
   where
     x = 42 :: Int
-    y = 24 :: Int
+    y = 204 :: Int
     f = unbits bf'
 
     bx' = bits x
     by' = bits y
-    bf' = bx' -|- by'
+    bf' = bx' >|< by'
 
     print' :: Int -> IO ()
     print' = putStr . show
     putDelim = putStr "\t: "
-    
+
     pax = padMax [bx', by', bf']
-    
+
     bx = pax bx'
     by = pax by'
     bf = pax bf'

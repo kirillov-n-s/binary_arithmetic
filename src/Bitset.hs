@@ -4,11 +4,14 @@ import qualified Bit as B
   
 type Bitset = [B.Bit]
 
+bitset :: B.Bit -> Bitset
+bitset x = [x]
+
 one :: Bitset
-one = [B.T]
+one = bitset B.T
 
 zero :: Bitset
-zero = [B.F]
+zero = bitset B.F
 
 strip :: Bitset -> Bitset
 strip [] = []
@@ -19,6 +22,21 @@ pad n x = replicate (n - length x) B.F ++ x
 
 padMax :: [Bitset] -> (Bitset -> Bitset)
 padMax xs = pad (maximum [length x | x <- xs])
+
+__ :: Bitset -> Bitset
+__ = map B.__
+
+bitwise :: (B.Bit -> B.Bit -> B.Bit) -> Bitset -> Bitset -> Bitset
+bitwise f x y = strip (zipWith f (pax x) (pax y))
+  where pax = padMax [x, y]
+
+x /\ y  = bitwise (B./\)  x y
+x \/ y  = bitwise (B.\/)  x y
+x <+> y = bitwise (B.<+>) x y
+x ==> y = bitwise (B.==>) x y
+x <=> y = bitwise (B.<=>) x y
+x /|\ y = bitwise (B./|\) x y
+x \|/ y = bitwise (B.\|/) x y
 
 (-|-) :: Bitset -> Bitset -> Bitset
 a -|- b = unwrap (wrap a `plus` wrap b)
@@ -47,17 +65,16 @@ table :: Int -> [Bitset]
 table 0 = []
 table n = [bitsFixed n x | x <- [0..2^n - 1]]
 
-__ :: Bitset -> Bitset
-__ = map B.__
+lshift :: Bitset -> Bitset
+lshift = (++ zero)
 
-bitwise :: (B.Bit -> B.Bit -> B.Bit) -> Bitset -> Bitset -> Bitset
-bitwise f x y = strip (zipWith f (pax x) (pax y))
-  where pax = padMax [x, y]
+rshift :: Bitset -> Bitset
+rshift = init
 
-x /\ y  = bitwise (B./\)  x y
-x \/ y  = bitwise (B.\/)  x y
-x <+> y = bitwise (B.<+>) x y
-x ==> y = bitwise (B.==>) x y
-x <=> y = bitwise (B.<=>) x y
-x /|\ y = bitwise (B./|\) x y
-x \|/ y = bitwise (B.\|/) x y
+withBit :: (Bitset -> Bitset -> Bitset) -> Bitset -> B.Bit -> Bitset
+withBit f xs x = xs `f` replicate (length xs) x
+
+(>|<) :: Bitset -> Bitset -> Bitset
+_ >|< [] = []
+[] >|< _ = []
+x >|< y = withBit (/\) x (last y) -|- lshift (x >|< rshift y)
